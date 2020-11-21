@@ -1,0 +1,27 @@
+{
+  "name": "HMStreamFront",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel ./src/index.html",
+    "build": "parcel build ./src/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "styled-components": "^5.2.1",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.56",
+    "@types/react-dom": "^16.9.9",
+    "@types/styled-components": "^5.1.4",
+    "less": "^3.12.2",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^4.1.2"
+  }
+}

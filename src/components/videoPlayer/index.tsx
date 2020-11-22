@@ -7,6 +7,11 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
+interface iVideoData {
+  message: string;
+  data: number[];
+}
+
 const Container = styled.div`
   width: 100%;
   height: 100%;
@@ -32,9 +37,7 @@ export default function VideoPlayer() {
   useEffect(() => {
     webStream.current.addEventListener("sourceopen", (evt) => {
       setBuffer(
-        webStream.current.addSourceBuffer(
-          'video/webm; codecs="vp8, vorbis"'
-        )
+        webStream.current.addSourceBuffer('video/webm; codecs="vp8, vorbis"')
       );
     });
 
@@ -47,30 +50,62 @@ export default function VideoPlayer() {
     );
   }, []);
 
+  // Here we initialize our websocket and do logic based on what happens when we get our video data from the backend
   useEffect(() => {
     if (buffer != null) {
-      streamer = new WebSocket("ws://localhost:2019/vidstream");
+      streamer = new WebSocket("ws://10.0.0.167:2019/vidstream");
       streamer.binaryType = "arraybuffer";
-      streamer.onmessage = (mess: MessageEvent<ArrayBuffer>) => {
-        buffer.appendBuffer(mess.data)
+
+      streamer.onopen = (evt) => {
+        streamer?.send("start");
+      }
+
+      streamer.onmessage = (mess: MessageEvent<any>) => {
+        console.log(mess);
+        if (mess.data instanceof Blob) {
+          const data = JSON.parse((mess.data as unknown) as string);
+          console.log(data);
+        } else if (mess.data instanceof ArrayBuffer) {
+          const data = mess.data;
+          const arr = new Uint8Array(data);
+
+          const vidData = { message: "", data: [] } as iVideoData;
+          let stringBuffer = "";
+          let isParsingData = false;
+          arr.forEach((byte) => {
+            if (!isParsingData) {
+              const character = String.fromCharCode(byte);
+              stringBuffer += character;
+              if (
+                stringBuffer
+                  .toLowerCase()
+                  .includes("~~~~~data~~~~~".toLowerCase())
+              ) {
+                vidData.message = stringBuffer.replace("~~~~~data~~~~~", "");
+                isParsingData = true;
+              }
+            } else {
+              vidData.data.push(byte);
+            }
+          });
+          const videoData = new Uint8Array(vidData.data);
+          buffer.appendBuffer(videoData.buffer);
+        }
       };
 
       buffer.addEventListener("error", (evt) => {
-        console.log(evt)
+        console.log(evt);
       });
 
       buffer.addEventListener("updateend", (evt) => {
-        
+        streamer?.send("next");
       });
     }
-
-
-
   }, [buffer]);
 
   return (
     <Container>
-      <video autoPlay controls ref={vidObj}></video>
+      <video controls ref={vidObj} />
     </Container>
   );
 }

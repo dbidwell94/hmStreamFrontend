@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 import styled from "styled-components";
+import axios from 'axios';
+import {base64ToUint8} from '../../utils/byteUtils';
 
 interface iVideoData {
   message: string;
@@ -21,91 +23,99 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   video {
-    width: 100%;
-    height: auto;
+    width: auto;
+    height: 100%;
     background: rgba(50, 50, 50, 0.5);
   }
 `;
 
-export default function VideoPlayer() {
-  let streamer = null as WebSocket | null;
+type iRequestObject = {
+  totalDataRecieved: number,
+  totalDataSize: number
+}
 
-  const vidObj = createRef() as RefObject<HTMLVideoElement>;
-  const webStream = useRef(new MediaSource());
-  const [buffer, setBuffer] = useState(null as SourceBuffer | null);
+const vidFile = "wal";
+
+export default function VideoPlayer() {
+
+  const vidDataSource = useRef(new MediaSource()) as React.MutableRefObject<MediaSource | null>;
+  const vidObject = createRef() as RefObject<HTMLVideoElement>;
+  const sourceBuffer = useRef(null) as React.MutableRefObject<SourceBuffer | null | undefined>;
+
+  const [allowRequests, setAllowRequests] = useState(false);
+  const [requestObject, setRequestObject] = useState({totalDataRecieved: 0, totalDataSize: 0} as iRequestObject);
+  const [readyToProcess, setReadyToProcess] = useState(false);
 
   useEffect(() => {
-    webStream.current.addEventListener("sourceopen", (evt) => {
-      setBuffer(
-        webStream.current.addSourceBuffer('video/webm; codecs="vp8, vorbis"')
-      );
+    (vidDataSource.current as MediaSource).addEventListener("sourceopen", (evt) => {
+      sourceBuffer.current = (vidDataSource.current as MediaSource).addSourceBuffer('video/webm ; codecs="vp8, vorbis"');
+      setAllowRequests(true);
     });
-
-    webStream.current.addEventListener("sourceclose", (evt) => {
-      console.log(evt);
-    });
-
-    (vidObj.current as HTMLVideoElement).src = URL.createObjectURL(
-      webStream.current
-    );
+    (vidObject.current as HTMLVideoElement).src = URL.createObjectURL((vidDataSource.current as MediaSource));
   }, []);
 
-  // Here we initialize our websocket and do logic based on what happens when we get our video data from the backend
   useEffect(() => {
-    if (buffer != null) {
-      streamer = new WebSocket("ws://10.0.0.167:2019/vidstream");
-      streamer.binaryType = "arraybuffer";
+    if(allowRequests) {
+      sourceBuffer.current?.addEventListener("updateend", (evt) => {
+        setReadyToProcess(true);
+      })
 
-      streamer.onopen = (evt) => {
-        streamer?.send("start");
-      }
+      vidDataSource.current?.addEventListener("sourceclose", (evt) => {
+        console.error(evt);
+      })
 
-      streamer.onmessage = (mess: MessageEvent<any>) => {
-        console.log(mess);
-        if (mess.data instanceof Blob) {
-          const data = JSON.parse((mess.data as unknown) as string);
-          console.log(data);
-        } else if (mess.data instanceof ArrayBuffer) {
-          const data = mess.data;
-          const arr = new Uint8Array(data);
+      sourceBuffer.current?.addEventListener("error", (evt) => {
+        console.error(evt);
+      })
 
-          const vidData = { message: "", data: [] } as iVideoData;
-          let stringBuffer = "";
-          let isParsingData = false;
-          arr.forEach((byte) => {
-            if (!isParsingData) {
-              const character = String.fromCharCode(byte);
-              stringBuffer += character;
-              if (
-                stringBuffer
-                  .toLowerCase()
-                  .includes("~~~~~data~~~~~".toLowerCase())
-              ) {
-                vidData.message = stringBuffer.replace("~~~~~data~~~~~", "");
-                isParsingData = true;
-              }
-            } else {
-              vidData.data.push(byte);
-            }
-          });
-          const videoData = new Uint8Array(vidData.data);
-          buffer.appendBuffer(videoData.buffer);
-        }
-      };
-
-      buffer.addEventListener("error", (evt) => {
-        console.log(evt);
-      });
-
-      buffer.addEventListener("updateend", (evt) => {
-        streamer?.send("next");
-      });
+      axios.get(`http://localhost:2019/video/${vidFile}.webm`, {headers: {"Allow": "video/webm", "Range": `${requestObject.totalDataRecieved}-`}})
+        .then(res => {
+          const rangeHeader = res.headers['range'] as string;
+          const totalSizeArr = rangeHeader.match(new RegExp("bytes=(\\d+)"));
+          let totalSize : number;
+          if(totalSizeArr && totalSizeArr.length > 0) {
+            totalSize = Number.parseInt(totalSizeArr[1]);
+          }
+          else {
+            totalSize = 0;
+          }
+          const upperLimit = Number.parseInt(rangeHeader.replace(new RegExp("bytes=\\d+ / "), "").split("-")[1]);
+          setRequestObject({totalDataSize: totalSize, totalDataRecieved: upperLimit})
+          const arr = base64ToUint8(res.data);
+          sourceBuffer.current?.appendBuffer(arr);
+        })
     }
-  }, [buffer]);
+  }, [allowRequests])
+
+  useEffect(() => {
+    if(readyToProcess && requestObject.totalDataSize > requestObject.totalDataRecieved) {
+      axios.get(`http://localhost:2019/video/${vidFile}.webm`, {headers: {"Allow": "video/webm", "Range": `${requestObject.totalDataRecieved}-`}})
+        .then(res => {
+          const rangeHeader = res.headers['range'] as string;
+          const upperLimit = Number.parseInt(rangeHeader.replace(new RegExp("bytes=\\d+ / "), "").split("-")[1]);
+          const arr = base64ToUint8(res.data);
+          setRequestObject({...requestObject, totalDataRecieved: requestObject.totalDataRecieved + upperLimit})
+          try {
+            sourceBuffer.current?.appendBuffer(arr);
+          }
+          catch(err) {
+            if(err instanceof(DOMException)) {
+              if(err.name === "QuotaExceededError") {
+                console.log(err);
+              }
+            }
+          }
+        })
+        .catch(err => {
+          console.error(err);
+        });
+        setReadyToProcess(false);
+    }
+  }, [readyToProcess])
 
   return (
     <Container>
-      <video controls ref={vidObj} />
+      <video autoPlay controls ref={vidObject}/>
     </Container>
   );
 }

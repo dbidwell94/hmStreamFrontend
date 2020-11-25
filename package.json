@@ -1,8 +1,8 @@
 {
-  "name": "HMStreamFront",
+  "name": "hm-stream-front",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The web based streaming front end. Connects directly to Client's personal server to stream webm audio/video content.",
+  "main": "src/index.tsx",
   "scripts": {
     "start": "parcel ./src/index.html",
     "build": "parcel build ./src/index.html"

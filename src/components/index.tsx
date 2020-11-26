@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import VideoPlayer from "./videoPlayer";
+import { Switch, Route } from "react-router-dom";
 
 const Container = styled.div`
   width: 100%;
@@ -16,7 +17,11 @@ const Container = styled.div`
 export default function App() {
   return (
     <Container>
-      <VideoPlayer />
+      <Switch>
+        <Route path="/watch/:vidName">
+          <VideoPlayer />
+        </Route>
+      </Switch>
     </Container>
   );
 }

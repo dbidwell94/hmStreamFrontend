@@ -64,7 +64,6 @@ export function getBytes(
   startingAt: number,
   url: string
 ): Promise<iResponseObject> {
-  console.log(startingAt);
   const response = axios.get(url, {
     headers: {
       Allow: "video/webm",

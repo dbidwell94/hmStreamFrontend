@@ -1,20 +1,7 @@
-import React, {
-  useEffect,
-  createRef,
-  RefObject,
-  useRef,
-  useState,
-  MutableRefObject,
-} from "react";
+import React, { useEffect, useRef, useState, MutableRefObject } from "react";
 import styled from "styled-components";
 import { useParams } from "react-router-dom";
-import axios from "axios";
-import {
-  base64ToUint8,
-  checkTimeRange,
-  onVideoSeek,
-  getBytes,
-} from "../../utils/byteUtils";
+import { checkTimeRange, onVideoSeek, getBytes } from "../../utils/byteUtils";
 import { iRequestObject } from "../../utils/types";
 
 interface iVideoData {
@@ -37,11 +24,9 @@ const Container = styled.div`
   video {
     width: auto;
     height: 100%;
-    background: rgba(50, 50, 50, 0.5);
+    background: transparent;
   }
 `;
-
-const vidFile = "wal";
 
 export default function VideoPlayer() {
   const { vidName } = useParams() as iVideoRouterParam;
@@ -95,6 +80,10 @@ export default function VideoPlayer() {
     }
   }, []);
 
+  /**
+   * When the MediaSource is appended to the <video /> element, this useEffect is run
+   * to add event listeners to the sourceBuffer
+   */
   useEffect(() => {
     if (sourceOpen) {
       try {
@@ -118,21 +107,40 @@ export default function VideoPlayer() {
     getBytes(
       vidDataDetails.current.totalDataRecieved,
       `http://localhost:2019/video/${vidName}.webm`
-    ).then((arr) => {
-      if (arr.dataBuffer && arr.requestObject) {
-        console.log(arr.requestObject);
-        bufferQueue.current.push(arr.dataBuffer);
-        if (
-          !sourceBuffer.current?.updating &&
-          (vidDataDetails.current.totalDataRecieved <
-            vidDataDetails.current.totalDataSize ||
-            vidDataDetails.current.totalDataSize === 0)
-        ) {
-          sourceBuffer.current?.appendBuffer(arr.dataBuffer);
-          vidDataDetails.current = arr.requestObject;
+    )
+      .then((arr) => {
+        if (arr.dataBuffer && arr.requestObject) {
+          bufferQueue.current.push(arr.dataBuffer);
+          if (
+            !sourceBuffer.current?.updating &&
+            (vidDataDetails.current.totalDataRecieved <
+              vidDataDetails.current.totalDataSize ||
+              vidDataDetails.current.totalDataSize === 0)
+          ) {
+            sourceBuffer.current?.appendBuffer(arr.dataBuffer);
+            vidDataDetails.current = arr.requestObject;
+          }
         }
-      }
-    });
+      })
+      .catch((err) => {
+        if (err instanceof DOMException) {
+          if (
+            err.name.toLowerCase().includes("QuotaExceededError".toLowerCase())
+          ) {
+            /**
+             * In this case, we cannot append to our buffer as the quota is full. We need
+             * to wait for the next oppertune time to remove from our previous buffer
+             * and get new data.
+             */
+            const checkQuota = window.setInterval(() => {
+              if (checkTimeRange(vidObject, sourceBuffer)) {
+                console.log("Ready to delete and get new data");
+                window.clearInterval(checkQuota);
+              }
+            }, 500);
+          }
+        }
+      });
   }
 
   return (

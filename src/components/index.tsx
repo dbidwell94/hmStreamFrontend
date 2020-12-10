@@ -1,6 +1,5 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import styled from "styled-components";
-import VideoPlayer from "./videoPlayer";
 import { Switch, Route } from "react-router-dom";
 
 const Container = styled.div`
@@ -14,13 +13,17 @@ const Container = styled.div`
   align-items: center;
 `;
 
+const VideoPlayer = lazy(() => import('./videoPlayer'))
+
 export default function App() {
   return (
     <Container>
       <Switch>
-        <Route path="/watch/:vidName">
-          <VideoPlayer />
-        </Route>
+        <Suspense fallback={<h1>Loading</h1>}>
+          <Route path="/watch/:vidName">
+            <VideoPlayer />
+          </Route>
+        </Suspense>
       </Switch>
     </Container>
   );

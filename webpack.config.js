@@ -2,7 +2,7 @@ const path = require("path");
 const htmlPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  mode: "production",
+  mode: "development",
   entry: {
     app: path.join(__dirname, "src", "index.tsx"),
   },
@@ -47,8 +47,12 @@ module.exports = {
     ],
   },
   output: {
-    filename: "[name].js",
+    filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
+    publicPath: "/",
+  },
+  devServer: {
+    historyApiFallback: true,
   },
   plugins: [
     new htmlPlugin({ filename: "index.html", template: "./src/index.html" }),

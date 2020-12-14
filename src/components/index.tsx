@@ -13,11 +13,15 @@ const Container = styled.div`
   align-items: center;
 `;
 
-const VideoPlayer = lazy(() => import('./videoPlayer'))
+const VideoPlayer = lazy(() => import("./videoPlayer"));
+const Navbar = lazy(() => import("./Navbar"));
 
 export default function App() {
   return (
     <Container>
+      <Suspense fallback={<nav>Navbar</nav>}>
+        <Navbar />
+      </Suspense>
       <Switch>
         <Suspense fallback={<h1>Loading</h1>}>
           <Route path="/watch/:vidName">

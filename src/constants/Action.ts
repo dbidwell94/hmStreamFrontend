@@ -1,6 +1,8 @@
-import {types} from './Types';
+import Types from './Types';
 
-export default interface Action {
-    type: types,
+interface iAction {
+    type: Types,
     payload: any
 }
+
+export default iAction;

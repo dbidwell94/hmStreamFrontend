@@ -1,3 +1,5 @@
-export enum types {
+enum types {
     
 }
+
+export default types;

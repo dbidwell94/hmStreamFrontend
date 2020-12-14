@@ -1,3 +1,5 @@
-export default interface State {
+interface iState {
     
 }
+
+export default iState

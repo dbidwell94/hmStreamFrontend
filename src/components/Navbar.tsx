@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import breakpoints from "../constants/Breakpoints";
+import { useSelector, useDispatch } from "react-redux";
+import { iState } from "../constants/State";
+import { toggleAuth } from "../actions";
 
 const Container = styled.nav`
   display: flex;
@@ -15,7 +18,8 @@ const Container = styled.nav`
   width: 100%;
   background: black;
   color: white;
-  @media (min-width: 100px) {
+  @media (max-width: ${breakpoints.DESKTOP}) {
+    color: red;
   }
   .title {
     h1 {
@@ -23,7 +27,8 @@ const Container = styled.nav`
     }
   }
   .links {
-    a {
+    a,
+    button {
       margin: 0rem 0rem 0rem 1rem;
       :first-child {
         margin: 0;
@@ -33,16 +38,27 @@ const Container = styled.nav`
 `;
 
 export default function Navbar() {
+  const shouldShowLogin = useSelector((state: iState) => state.shouldShowLogin);
+
+  const dispatch = useDispatch();
+
+  function handleLoginClick(
+    evt: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    evt.preventDefault();
+    dispatch(toggleAuth());
+  }
+
   return (
     <Container>
       <div className="title">
         <h1>HMStream</h1>
       </div>
       <div className="links">
-        <Link to="/movies">Movies</Link>
-        <Link to="/" className="cta">
+        <Link to="/library">Library</Link>
+        <button className="cta" onClick={handleLoginClick}>
           Login
-        </Link>
+        </button>
       </div>
     </Container>
   );

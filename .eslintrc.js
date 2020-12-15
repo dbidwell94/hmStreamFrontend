@@ -19,4 +19,17 @@ module.exports = {
     camelcase: 0,
     "comma-dangle": ["error", "only-multiline"],
   },
+  settings: {
+    "import/resolver": {
+      alias: {
+        map: [
+          ["constants", "./src/constants"],
+          ["reducer", "./src/reducer"],
+        ],
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
+      },
+      extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
+    },
+    react: { version: "detect" },
+  },
 };

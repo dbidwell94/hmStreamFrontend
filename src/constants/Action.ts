@@ -1,6 +1,7 @@
 import Types from './Types';
+import {Action} from 'redux';
 
-interface iAction {
+interface iAction extends Action{
     type: Types,
     payload: any
 }

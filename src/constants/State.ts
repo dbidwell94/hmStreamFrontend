@@ -1,5 +1,3 @@
-interface iState {
-    
+export interface iState {
+  shouldShowLogin: boolean;
 }
-
-export default iState

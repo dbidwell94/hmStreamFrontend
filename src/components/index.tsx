@@ -1,11 +1,14 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import styled from "styled-components";
 import { Switch, Route } from "react-router-dom";
+import Navbar from "./Navbar";
+import { useSelector } from "react-redux";
+import { iState } from "../constants/State";
 
 const Container = styled.div`
   width: 100%;
-  height: 100vh;
   background: grey;
+  min-height: 100vh;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -14,16 +17,21 @@ const Container = styled.div`
 `;
 
 const VideoPlayer = lazy(() => import("./videoPlayer"));
-const Navbar = lazy(() => import("./Navbar"));
+const Auth = lazy(() => import("./shared/auth"));
 
 export default function App() {
+  const shouldShowAuth = useSelector((state: iState) => state.shouldShowLogin);
+
   return (
     <Container>
-      <Suspense fallback={<nav>Navbar</nav>}>
-        <Navbar />
-      </Suspense>
+      <Navbar />
+      {shouldShowAuth && (
+        <Suspense fallback={<h1>Loading...</h1>}>
+          <Auth />
+        </Suspense>
+      )}
       <Switch>
-        <Suspense fallback={<h1>Loading</h1>}>
+        <Suspense fallback={<h1>Loading...</h1>}>
           <Route path="/watch/:vidName">
             <VideoPlayer />
           </Route>

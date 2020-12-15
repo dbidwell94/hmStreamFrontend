@@ -6,12 +6,14 @@ import { Provider } from "react-redux";
 import { createStore, applyMiddleware, Reducer } from "redux";
 import baseReducer from "./reducer/baseReducer";
 import thunk from "redux-thunk";
+import logger from "redux-logger";
 import "./less/index.less";
-import State from "./constants/State";
+import { iState } from "./constants/State";
+import iAction from "./constants/Action";
 
 const store = createStore(
-  baseReducer as Reducer<State>,
-  applyMiddleware(thunk)
+  baseReducer as Reducer<iState, iAction>,
+  applyMiddleware(thunk, logger)
 );
 
 ReactDOM.render(

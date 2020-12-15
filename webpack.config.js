@@ -57,4 +57,15 @@ module.exports = {
   plugins: [
     new htmlPlugin({ filename: "index.html", template: "./src/index.html" }),
   ],
+  performance: {
+    hints: false,
+  },
+  optimization: {
+    splitChunks: {
+      chunks: "async",
+      minSize: 50000,
+      maxSize: 200000,
+      maxAsyncRequests: 30
+    }
+  }
 };

@@ -63,9 +63,21 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks: "async",
-      minSize: 50000,
-      maxSize: 200000,
-      maxAsyncRequests: 30
-    }
-  }
+      minSize: 10000,
+      maxSize: 80000,
+      maxAsyncRequests: 30,
+      cacheGroups: {
+        defaultVendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10,
+          reuseExistingChunk: true,
+        },
+        default: {
+          minChunks: 2,
+          priority: -20,
+          reuseExistingChunk: true,
+        },
+      },
+    },
+  },
 };

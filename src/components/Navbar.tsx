@@ -16,11 +16,8 @@ const Container = styled.nav`
   left: 0;
   height: 6rem;
   width: 100%;
-  background: black;
+  background: #464646;
   color: white;
-  @media (max-width: ${breakpoints.DESKTOP}) {
-    color: red;
-  }
   .title {
     h1 {
       font-size: 2.5rem;

@@ -13,9 +13,9 @@ const Container = styled.section`
   min-height: 50vh;
   max-height: 100vh;
   min-width: 50vw;
+  z-index: 1;
   form {
     display: flex;
-
   }
 `;
 

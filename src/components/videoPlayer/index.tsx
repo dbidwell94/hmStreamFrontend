@@ -3,6 +3,9 @@ import styled from "styled-components";
 import { useParams } from "react-router-dom";
 import { checkTimeRange, onVideoSeek, getBytes } from "../../utils/byteUtils";
 import { iRequestObject } from "../../utils/types";
+import { useDispatch } from "react-redux";
+import { sendSystemMessage } from "../../actions";
+import { messageSeverity } from "../../constants/Types";
 
 interface iVideoData {
   message: string;
@@ -14,22 +17,24 @@ interface iVideoRouterParam {
 }
 
 const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  background: black;
+  width: 100vw;
+  height: calc(100vh - 6rem);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 0;
   video {
     width: auto;
     height: 100%;
-    background: transparent;
+    z-index: 0;
   }
 `;
 
 export default function VideoPlayer() {
   const { vidName } = useParams() as iVideoRouterParam;
+
+  const dispatch = useDispatch();
 
   //#region Ref Objects
   const vidDataSource = useRef(
@@ -139,6 +144,9 @@ export default function VideoPlayer() {
               }
             }, 500);
           }
+        }
+        else if(err instanceof Error) {
+          dispatch(sendSystemMessage(err.message, messageSeverity.CRITICAL, 5000))
         }
       });
   }

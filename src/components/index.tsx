@@ -7,13 +7,11 @@ import { iState } from "../constants/State";
 
 const Container = styled.div`
   width: 100%;
-  background: grey;
-  min-height: 100vh;
-  padding: 2rem;
+  background: black;
+  min-height: calc(100vh - 6rem);
+  margin-top: 6rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
 `;
 
 const VideoPlayer = lazy(() => import("./videoPlayer"));
@@ -23,20 +21,22 @@ export default function App() {
   const shouldShowAuth = useSelector((state: iState) => state.shouldShowLogin);
 
   return (
-    <Container>
+    <React.Fragment>
       <Navbar />
-      {shouldShowAuth && (
-        <Suspense fallback={<h1>Loading...</h1>}>
-          <Auth />
-        </Suspense>
-      )}
-      <Switch>
-        <Suspense fallback={<h1>Loading...</h1>}>
-          <Route path="/watch/:vidName">
-            <VideoPlayer />
-          </Route>
-        </Suspense>
-      </Switch>
-    </Container>
+      <Container>
+        {shouldShowAuth && (
+          <Suspense fallback={<h1>Loading...</h1>}>
+            <Auth />
+          </Suspense>
+        )}
+        <Switch>
+          <Suspense fallback={<h1>Loading...</h1>}>
+            <Route path="/watch/:vidName">
+              <VideoPlayer />
+            </Route>
+          </Suspense>
+        </Switch>
+      </Container>
+    </React.Fragment>
   );
 }

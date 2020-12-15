@@ -8,11 +8,9 @@ import baseReducer from "./reducer/baseReducer";
 import thunk from "redux-thunk";
 import logger from "redux-logger";
 import "./less/index.less";
-import { iState } from "./constants/State";
-import iAction from "./constants/Action";
 
 const store = createStore(
-  baseReducer as Reducer<iState, iAction>,
+  baseReducer,
   applyMiddleware(thunk, logger)
 );
 

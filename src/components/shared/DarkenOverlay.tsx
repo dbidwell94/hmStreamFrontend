@@ -10,7 +10,8 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 12rem;
+  //margin-top: 6rem;
+  z-index: 1;
 `;
 
 export default Container;

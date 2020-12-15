@@ -6,19 +6,27 @@ button {
   background: white;
   color: black;
   border-radius: 0.25rem;
-  transition: 0.125s ease-in-out all;
+  transition: 0.0625s ease-in-out all;
   border: none;
   font-family: "Noto Sans KR", sans-serif;
-  box-shadow: 0.125rem 0.125rem .625rem black;
+  box-shadow: 0.125rem 0.125rem 0.625rem black;
   &:hover {
     background: darken(white, 10);
-    box-shadow: 0.25rem 0.25rem .75rem black;
+    box-shadow: 0.25rem 0.25rem 0.75rem black;
+    &:active {
+      background: darken(white, 60);
+      color: white;
+    }
   }
 
   &.cta {
     background: gold;
     &:hover {
       background: darken(gold, 10);
+      &:active {
+        background: darken(gold, 30);
+        color: white;
+      }
     }
   }
 }

@@ -3,7 +3,7 @@ import types from "../constants/Types";
 import {iState} from "../constants/State";
 
 const initialState: iState = {
-  shouldShowLogin: false,
+  shouldShowLogin: true,
 };
 
 export default function (state = initialState, action: Action) {

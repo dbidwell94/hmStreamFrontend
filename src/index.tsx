@@ -12,7 +12,6 @@ import "./less/index.less";
 const isDevelopment = !process.env.NODE_ENV?.toLowerCase().includes(
   "production"
 );
-console.log(process.env);
 
 const store = isDevelopment
   ? createStore(baseReducer, applyMiddleware(thunk, logger))

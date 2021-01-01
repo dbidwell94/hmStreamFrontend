@@ -111,7 +111,7 @@ export default function VideoPlayer() {
   function retrieveData() {
     getBytes(
       vidDataDetails.current.totalDataRecieved,
-      `http://localhost:2019/video/${vidName}.webm`
+      `http://localhost:2019/video/${vidName}.webm/bytes`
     )
       .then((arr) => {
         if (arr.dataBuffer && arr.requestObject) {

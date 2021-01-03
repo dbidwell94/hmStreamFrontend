@@ -29,6 +29,15 @@ export type iServerError = {
 }
 
 export type iVideoData = {
-  DataSize: number;
-  VideoData: string;
+  dataSize: number;
+  videoData: string;
+}
+
+export type iVideoDetails = {
+  videoSize: number;
+  videoName: string;
+  duration: string;
+  videoFormat: string;
+  audioFormat: string;
+  fps: number
 }

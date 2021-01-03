@@ -1,6 +1,6 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { getBytesEndpoint } from "../constants/Endpoints";
-import { iServerError, iVideoData } from "../constants/Types";
+import { iVideoData } from "../constants/Types";
 
 export const MAX_BYTE_SIZE = 1000000;
 

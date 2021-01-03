@@ -3,14 +3,17 @@ import styled from "styled-components";
 import { useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { sendSystemMessage } from "../../actions";
-import { messageSeverity, iServerError } from "../../constants/Types";
+import {
+  messageSeverity,
+  iServerError,
+  iVideoDetails,
+} from "../../constants/Types";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { getBytes, stringToUint8Arr, MAX_BYTE_SIZE } from "../../utils/byteUtils";
-
-interface iVideoDetails {
-  VideoSize: number;
-  VideoName: string;
-}
+import {
+  getBytes,
+  stringToUint8Arr,
+  MAX_BYTE_SIZE,
+} from "../../utils/byteUtils";
 
 interface iVideoRouterParam {
   vidName: string;
@@ -44,7 +47,7 @@ export default function VideoPlayer() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:2019/video/${vidName}.webm/size`)
+      .get(`http://localhost:2019/video/${vidName}.webm`)
       .then((res: AxiosResponse<iVideoDetails | null>) => {
         setVideoDetails(res.data);
       })
@@ -60,13 +63,14 @@ export default function VideoPlayer() {
 
   useEffect(() => {
     if (videoDetails) {
+      console.log(videoDetails);
       getBytes({
         endingAt: MAX_BYTE_SIZE,
         startingAt: 0,
-        fileName: videoDetails.VideoName,
+        fileName: videoDetails.videoName,
       })
         .then((res) => {
-          console.log(stringToUint8Arr(res.VideoData));
+          console.log(stringToUint8Arr(res.videoData));
         })
         .catch((err: AxiosError<iServerError>) => {
           dispatch(

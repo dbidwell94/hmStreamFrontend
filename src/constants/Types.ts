@@ -18,3 +18,17 @@ export type iSystemMessage = {
   timeoutFunction: Function;
   key: string;
 };
+
+export type iServerError = {
+  timestamp: string;
+  message: string;
+  details: string;
+  path: string;
+  errors: string;
+  developerInfo: string[]
+}
+
+export type iVideoData = {
+  DataSize: number;
+  VideoData: string;
+}

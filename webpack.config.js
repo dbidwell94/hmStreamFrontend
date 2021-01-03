@@ -56,7 +56,12 @@ module.exports = (env, argv) => {
       historyApiFallback: true,
     },
     plugins: [
-      new htmlPlugin({ filename: "index.html", template: "./src/index.html" }),
+      new htmlPlugin({
+        filename: "index.html",
+        template: "./src/index.html",
+        favicon: "./src/favicon/favicon.ico",
+        hash: true,
+      }),
     ],
     performance: {
       hints: false,
@@ -65,7 +70,7 @@ module.exports = (env, argv) => {
       splitChunks: {
         chunks: "async",
         minSize: 10000,
-        maxSize: 80000,
+        maxSize: 100000,
         maxAsyncRequests: 30,
         cacheGroups: {
           defaultVendors: {

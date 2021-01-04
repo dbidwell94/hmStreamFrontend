@@ -19,6 +19,11 @@ interface iVideoRouterParam {
   vidName: string;
 }
 
+type iMediaObjects = {
+  mediaSource: MediaSource;
+  sourceBuffer: SourceBuffer | null;
+};
+
 const Container = styled.div`
   width: 100vw;
   height: calc(100vh - 6rem);
@@ -39,17 +44,69 @@ export default function VideoPlayer() {
   const dispatch = useDispatch();
 
   const videoObject = useRef(null) as MutableRefObject<null | HTMLVideoElement>;
-  const mediaSource = useRef(new MediaSource());
+  const mediaObjects = useRef({
+    mediaSource: new MediaSource(),
+    sourceBuffer: null,
+  } as iMediaObjects);
 
   const [videoDetails, setVideoDetails] = useState(
     null as iVideoDetails | null
   );
 
+  const [readyToAppend, setReadyToAppend] = useState(false);
+
+  const [sourceBufferStatus, setSourceBufferStatus] = useState({
+    currentBytePos: 0,
+    remainingBytes: 0,
+  });
+
   useEffect(() => {
+    function setupSourceBuffer(codec: string) {
+      if (MediaSource.isTypeSupported(codec)) {
+        mediaObjects.current.mediaSource.addEventListener(
+          "sourceopen",
+          (evt) => {
+            mediaObjects.current.sourceBuffer = mediaObjects.current.mediaSource.addSourceBuffer(
+              codec
+            );
+            mediaObjects.current.sourceBuffer.addEventListener(
+              "updateend",
+              (evt) => {
+                setReadyToAppend(true);
+              }
+            );
+            setReadyToAppend(true);
+          }
+        );
+        if (videoObject.current) {
+          videoObject.current.src = URL.createObjectURL(
+            mediaObjects.current.mediaSource
+          );
+        }
+      } else {
+        dispatch(
+          sendSystemMessage(
+            `${codec} is not supported`,
+            messageSeverity.CRITICAL
+          )
+        );
+      }
+    }
+
     axios
       .get(`http://localhost:2019/video/${vidName}.webm`)
       .then((res: AxiosResponse<iVideoDetails | null>) => {
-        setVideoDetails(res.data);
+        if (res.data) {
+          const videoType = res.data?.videoName.split(".")[1];
+          setVideoDetails(res.data);
+          setSourceBufferStatus({
+            ...sourceBufferStatus,
+            remainingBytes: res.data.videoSize,
+          });
+          setupSourceBuffer(
+            `video/${videoType}; codecs="${res.data?.videoFormat}, ${res.data?.audioFormat}"`
+          );
+        }
       })
       .catch((err: AxiosError<iServerError>) => {
         dispatch(
@@ -62,30 +119,31 @@ export default function VideoPlayer() {
   }, []);
 
   useEffect(() => {
-    if (videoDetails) {
-      console.log(videoDetails);
-      getBytes({
-        endingAt: MAX_BYTE_SIZE,
-        startingAt: 0,
-        fileName: videoDetails.videoName,
-      })
-        .then((res) => {
-          console.log(stringToUint8Arr(res.videoData));
-        })
-        .catch((err: AxiosError<iServerError>) => {
-          dispatch(
-            sendSystemMessage(
-              err.response?.data.message || err.message,
-              messageSeverity.CRITICAL
-            )
-          );
+    if (mediaObjects.current.sourceBuffer && readyToAppend && videoDetails) {
+      if (sourceBufferStatus.remainingBytes > 0) {
+        getBytes({
+          fileName: videoDetails.videoName,
+          endingAt: sourceBufferStatus.currentBytePos + MAX_BYTE_SIZE,
+          startingAt: sourceBufferStatus.currentBytePos,
+        }).then((res) => {
+          setSourceBufferStatus({
+            ...sourceBufferStatus,
+            remainingBytes: res.remainingBytes,
+            currentBytePos: sourceBufferStatus.currentBytePos + MAX_BYTE_SIZE,
+          });
+          const data = stringToUint8Arr(res.videoData);
+          mediaObjects.current.sourceBuffer?.appendBuffer(data);
+          setReadyToAppend(false);
         });
+      }
+    } else if (readyToAppend && !mediaObjects.current.sourceBuffer) {
+      setReadyToAppend(false);
     }
-  }, [videoDetails]);
+  }, [readyToAppend]);
 
   return (
     <Container>
-      <video autoPlay ref={videoObject} />
+      <video autoPlay controls ref={videoObject} />
     </Container>
   );
 }

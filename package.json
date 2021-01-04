@@ -1,7 +1,7 @@
 {
   "name": "hm-stream-front",
   "version": "1.0.0",
-  "description": "The web based streaming front end. Connects directly to Client's personal server to stream webm audio/video content.",
+  "description": "The web based streaming front end. Connects directly to Client's personal server to stream audio/video content.",
   "main": "src/index.tsx",
   "scripts": {
     "build": "rm -rdf dist/ && webpack --config webpack.config.js --mode=production",

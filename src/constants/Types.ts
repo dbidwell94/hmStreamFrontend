@@ -31,6 +31,7 @@ export type iServerError = {
 export type iVideoData = {
   dataSize: number;
   videoData: string;
+  remainingBytes: number
 }
 
 export type iVideoDetails = {

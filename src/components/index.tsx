@@ -1,9 +1,13 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import styled from "styled-components";
-import { Switch, Route } from "react-router-dom";
+import { Switch } from "react-router-dom";
 import Navbar from "./Navbar";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { iState } from "../constants/State";
+import PrivateRoute from "./shared/PrivateRoute";
+import NotificationCenter from "./shared/NotificationCenter";
+import { setMediaServerAddress } from "../actions";
+import VideoPlayer from './videoPlayer';
 
 const Container = styled.div`
   width: 100%;
@@ -14,15 +18,17 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-const VideoPlayer = lazy(() => import("./videoPlayer"));
 const Auth = lazy(() => import("./shared/auth"));
 
 export default function App() {
   const shouldShowAuth = useSelector((state: iState) => state.shouldShowLogin);
+  const dispatch = useDispatch();
+  const auth = useSelector((state: iState) => state.authentication);
 
   return (
     <React.Fragment>
       <Navbar />
+      <NotificationCenter />
       <Container>
         {shouldShowAuth && (
           <Suspense fallback={<h1>Loading...</h1>}>
@@ -30,11 +36,9 @@ export default function App() {
           </Suspense>
         )}
         <Switch>
-          <Suspense fallback={<h1>Loading...</h1>}>
-            <Route path="/watch/:vidName">
-              <VideoPlayer />
-            </Route>
-          </Suspense>
+          <PrivateRoute path="/watch/:vidName" redirectTo="/">
+            <VideoPlayer />
+          </PrivateRoute>
         </Switch>
       </Container>
     </React.Fragment>

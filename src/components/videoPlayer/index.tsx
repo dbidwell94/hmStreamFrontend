@@ -1,149 +1,92 @@
-import React, { useEffect, useRef, useState, MutableRefObject } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { iState } from "../../constants/State";
+import VideoPlayer from "./player";
 import styled from "styled-components";
-import { useParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { sendSystemMessage } from "../../actions";
-import {
-  messageSeverity,
-  iServerError,
-  iVideoDetails,
-} from "../../constants/Types";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import {
-  getBytes,
-  stringToUint8Arr,
-  MAX_BYTE_SIZE,
-} from "../../utils/byteUtils";
+import axios from "axios";
+import { BACKEND_URL } from "../../constants";
+import { sendSystemMessage, setMediaServerAddress } from "../../actions";
+import { messageSeverity } from "../../constants/Types";
 
-interface iVideoRouterParam {
-  vidName: string;
-}
-
-type iMediaObjects = {
-  mediaSource: MediaSource;
-  sourceBuffer: SourceBuffer | null;
-};
-
-const Container = styled.div`
-  width: 100vw;
-  height: calc(100vh - 6rem);
+const Loader = styled.div`
+  background: transparent;
   display: flex;
-  flex-direction: column;
+  font-size: 2rem;
+  width: 100%;
+  height: calc(100vh - 6rem);
   justify-content: center;
   align-items: center;
-  z-index: 0;
-  video {
-    width: auto;
-    height: 100%;
-    z-index: 0;
+  p {
+    color: white;
   }
 `;
 
-export default function VideoPlayer() {
-  const { vidName } = useParams() as iVideoRouterParam;
+export default function VideoPlayerLoader() {
+  const ipAddress = useSelector((state: iState) => state.mediaServerIpAddress);
+
+  const token = useSelector((state: iState) => state.authentication.token);
   const dispatch = useDispatch();
 
-  const videoObject = useRef(null) as MutableRefObject<null | HTMLVideoElement>;
-  const mediaObjects = useRef({
-    mediaSource: new MediaSource(),
-    sourceBuffer: null,
-  } as iMediaObjects);
-
-  const [videoDetails, setVideoDetails] = useState(
-    null as iVideoDetails | null
-  );
-
-  const [readyToAppend, setReadyToAppend] = useState(false);
-
-  const [sourceBufferStatus, setSourceBufferStatus] = useState({
-    currentBytePos: 0,
-    remainingBytes: 0,
-  });
+  const [readyToLoad, setReadyToLoad] = useState(false);
 
   useEffect(() => {
-    function setupSourceBuffer(codec: string) {
-      if (MediaSource.isTypeSupported(codec)) {
-        mediaObjects.current.mediaSource.addEventListener(
-          "sourceopen",
-          (evt) => {
-            mediaObjects.current.sourceBuffer = mediaObjects.current.mediaSource.addSourceBuffer(
-              codec
-            );
-            mediaObjects.current.sourceBuffer.addEventListener(
-              "updateend",
-              (evt) => {
-                setReadyToAppend(true);
+    async function checkIpAddress() {
+      if (token) {
+        try {
+          const remoteUrl = await axios.get<{ address: string; id: number }>(
+            `${BACKEND_URL}/api/addresses/address`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const port = remoteUrl.data.address.split(":")[1];
+          try {
+            const localResponse = await (
+              await axios.get<{ status?: string }>(`http://localhost:${port}`)
+            ).data;
+            if ("status" in localResponse) {
+              dispatch(setMediaServerAddress(`localhost:${port}`));
+              setReadyToLoad(true);
+            }
+          } catch (err) {
+            try {
+              const remoteResponse = await (
+                await axios.get(`http://${remoteUrl.data.address}`)
+              ).data;
+              if ("status" in remoteResponse) {
+                dispatch(setMediaServerAddress(remoteUrl.data.address));
+                setReadyToLoad(true);
               }
-            );
-            setReadyToAppend(true);
+            } catch (err) {
+              dispatch(
+                sendSystemMessage(
+                  "Unable to connect to media server",
+                  messageSeverity.CRITICAL
+                )
+              );
+            }
           }
-        );
-        if (videoObject.current) {
-          videoObject.current.src = URL.createObjectURL(
-            mediaObjects.current.mediaSource
+        } catch (err) {
+          dispatch(
+            sendSystemMessage(
+              "HMStream is down, please try again later",
+              messageSeverity.CRITICAL
+            )
           );
         }
-      } else {
-        dispatch(
-          sendSystemMessage(
-            `${codec} is not supported`,
-            messageSeverity.CRITICAL
-          )
-        );
       }
     }
 
-    axios
-      .get(`http://localhost:2019/video/${vidName}.webm`)
-      .then((res: AxiosResponse<iVideoDetails | null>) => {
-        if (res.data) {
-          const videoType = res.data?.videoName.split(".")[1];
-          setVideoDetails(res.data);
-          setSourceBufferStatus({
-            ...sourceBufferStatus,
-            remainingBytes: res.data.videoSize,
-          });
-          setupSourceBuffer(
-            `video/${videoType}; codecs="${res.data?.videoFormat}, ${res.data?.audioFormat}"`
-          );
-        }
-      })
-      .catch((err: AxiosError<iServerError>) => {
-        dispatch(
-          sendSystemMessage(
-            err.response?.data.message || err.message,
-            messageSeverity.CRITICAL
-          )
-        );
-      });
-  }, []);
-
-  useEffect(() => {
-    if (mediaObjects.current.sourceBuffer && readyToAppend && videoDetails) {
-      if (sourceBufferStatus.remainingBytes > 0) {
-        getBytes({
-          fileName: videoDetails.videoName,
-          endingAt: sourceBufferStatus.currentBytePos + MAX_BYTE_SIZE,
-          startingAt: sourceBufferStatus.currentBytePos,
-        }).then((res) => {
-          setSourceBufferStatus({
-            ...sourceBufferStatus,
-            remainingBytes: res.remainingBytes,
-            currentBytePos: sourceBufferStatus.currentBytePos + MAX_BYTE_SIZE,
-          });
-          const data = stringToUint8Arr(res.videoData);
-          mediaObjects.current.sourceBuffer?.appendBuffer(data);
-          setReadyToAppend(false);
-        });
-      }
-    } else if (readyToAppend && !mediaObjects.current.sourceBuffer) {
-      setReadyToAppend(false);
-    }
-  }, [readyToAppend]);
+    checkIpAddress();
+  }, [token]);
 
   return (
-    <Container>
-      <video autoPlay controls ref={videoObject} />
-    </Container>
+    <>
+      {readyToLoad ? (
+        <VideoPlayer />
+      ) : (
+        <Loader>
+          <p>Loading...</p>
+        </Loader>
+      )}
+    </>
   );
 }

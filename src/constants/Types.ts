@@ -4,6 +4,9 @@ export enum actionTypes {
   SET_VIDEO_IS_PLAYING = "SET_VIDEO_IS_PLAYING",
   SET_SYSTEM_MESSAGE = "SET_SYSTEM_MESSAGE",
   REMOVE_SYSTEM_MESSAGE = "REMOVE_SYSTEM_MESSAGE",
+  SET_AUTH = "SET_AUTH",
+  SET_MEDIA_IP_ADDRESS = "SET_MEDIA_IP_ADDRESS",
+  NULL = "null"
 }
 
 export enum messageSeverity {
@@ -16,6 +19,7 @@ export type iSystemMessage = {
   severity: messageSeverity;
   message: string;
   timeoutFunction: Function;
+  totalAliveTime: number;
   key: string;
 };
 
@@ -25,14 +29,14 @@ export type iServerError = {
   details: string;
   path: string;
   errors: string;
-  developerInfo: string[]
-}
+  developerInfo: string[];
+};
 
 export type iVideoData = {
   dataSize: number;
   videoData: string;
-  remainingBytes: number
-}
+  remainingBytes: number;
+};
 
 export type iVideoDetails = {
   videoSize: number;
@@ -40,5 +44,10 @@ export type iVideoDetails = {
   duration: string;
   videoFormat: string;
   audioFormat: string;
-  fps: number
-}
+  fps: number;
+};
+
+export type iAuthentication = {
+  token: string | null;
+  userId: number | null;
+};

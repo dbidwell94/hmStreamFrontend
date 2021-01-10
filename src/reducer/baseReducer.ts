@@ -1,11 +1,34 @@
 import Action from "../constants/Action";
-import { actionTypes, iSystemMessage } from "../constants/Types";
+import { actionTypes, iAuthentication } from "../constants/Types";
 import { iState } from "../constants/State";
+import decode from "jwt-decode";
+
+function getToken(): iAuthentication {
+  const token = window.localStorage.getItem("token");
+  if (token) {
+    const decoded = decode(token) as {
+      id: number;
+      email: string;
+      username: string;
+    };
+    return {
+      token: token,
+      userId: decoded.id,
+    };
+  } else {
+    return {
+      token: null,
+      userId: null,
+    };
+  }
+}
 
 const initialState: iState = {
   shouldShowLogin: false,
   videoIsPlaying: false,
   systemMessages: [],
+  authentication: getToken(),
+  mediaServerIpAddress: null,
 };
 
 function throwReducerError(type: string) {
@@ -36,10 +59,22 @@ export default function (state = initialState, action: Action): iState {
       return {
         ...state,
         systemMessages: state.systemMessages.filter((message) => {
-          if (message.key != (action.payload as iSystemMessage).key) {
+          if (message.key !== (action.payload as string)) {
             return message;
           }
         }),
+      };
+
+    case actionTypes.SET_MEDIA_IP_ADDRESS:
+      return {
+        ...state,
+        mediaServerIpAddress: action.payload
+      };
+
+    case actionTypes.SET_AUTH:
+      return {
+        ...state,
+        authentication: action.payload,
       };
 
     default:

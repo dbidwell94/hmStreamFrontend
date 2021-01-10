@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import breakpoints from "../constants/Breakpoints";
 import { useSelector, useDispatch } from "react-redux";
 import { iState } from "../constants/State";
-import { toggleAuth } from "../actions";
+import { toggleAuth, logout } from "../actions";
 
 const Container = styled.nav`
   display: flex;
@@ -35,7 +35,7 @@ const Container = styled.nav`
 `;
 
 export default function Navbar() {
-  const shouldShowLogin = useSelector((state: iState) => state.shouldShowLogin);
+  const auth = useSelector((state: iState) => state.authentication);
 
   const dispatch = useDispatch();
 
@@ -46,6 +46,13 @@ export default function Navbar() {
     dispatch(toggleAuth());
   }
 
+  function handleLogoutClick(
+    evt: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    evt.preventDefault();
+    dispatch(logout());
+  }
+
   return (
     <Container>
       <div className="title">
@@ -53,9 +60,13 @@ export default function Navbar() {
       </div>
       <div className="links">
         <Link to="/library">Library</Link>
-        <button className="cta" onClick={handleLoginClick}>
-          Login
-        </button>
+        {auth.userId === null ? (
+          <button className="cta" onClick={handleLoginClick}>
+            Login
+          </button>
+        ) : (
+          <button onClick={handleLogoutClick}>Logout</button>
+        )}
       </div>
     </Container>
   );

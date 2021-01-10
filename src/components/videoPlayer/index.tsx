@@ -47,7 +47,9 @@ export default function VideoPlayerLoader() {
               setReadyToLoad(true);
             }
           } catch (err) {
+              console.log(`Logging error: ${err}`);
             try {
+                console.log("trying other server")
               const remoteResponse = await (
                 await axios.get(`http://${remoteUrl.data.address}`)
               ).data;

@@ -10,7 +10,7 @@
     "start": "webpack serve"
   },
   "engines": {
-    "node": ">=15.0.0"
+    "node": "15.x"
   },
   "keywords": [],
   "author": "",

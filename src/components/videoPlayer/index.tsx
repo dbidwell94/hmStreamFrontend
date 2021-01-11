@@ -43,7 +43,7 @@ export default function VideoPlayerLoader() {
               await axios.get<{ status?: string }>(`https://10.0.0.240:${port}`)
             ).data;
             if ("status" in localResponse) {
-              dispatch(setMediaServerAddress(`localhost:${port}`));
+              dispatch(setMediaServerAddress(`10.0.0.240:${port}`));
               setReadyToLoad(true);
             }
           } catch (err) {

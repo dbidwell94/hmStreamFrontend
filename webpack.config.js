@@ -54,7 +54,7 @@ module.exports = (env, argv) => {
     },
     devServer: {
       historyApiFallback: true,
-      port: 21437,
+      port: 1437,
     },
     plugins: [
       new htmlPlugin({

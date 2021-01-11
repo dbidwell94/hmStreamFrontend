@@ -8,14 +8,17 @@ type getBytesOptions = {
   startingAt: number;
   endingAt: number;
   fileName: string;
-  baseUrl: string | null
+  baseUrl: string | null;
 };
 
 export async function getBytes(options: getBytesOptions): Promise<iVideoData> {
   const range = `bytes=${options.startingAt}-${options.endingAt}`;
-  const response = (await axios.get(getBytesEndpoint(options.fileName, options.baseUrl), {
-    headers: { range },
-  })) as AxiosResponse<iVideoData>;
+  const response = (await axios.get(
+    getBytesEndpoint(options.fileName, options.baseUrl),
+    {
+      headers: { range },
+    }
+  )) as AxiosResponse<iVideoData>;
   return response.data;
 }
 

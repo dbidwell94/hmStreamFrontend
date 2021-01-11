@@ -47,11 +47,11 @@ export default function VideoPlayerLoader() {
               setReadyToLoad(true);
             }
           } catch (err) {
-              console.log(`Logging error: ${err}`);
+            console.log(`Logging error: ${err}`);
             try {
-                console.log("trying other server")
+              console.log("trying other server");
               const remoteResponse = await (
-                await axios.get(`http://${remoteUrl.data.address}`)
+                await axios.get(`http://${remoteUrl.data.address}`, {})
               ).data;
               if ("status" in remoteResponse) {
                 dispatch(setMediaServerAddress(remoteUrl.data.address));

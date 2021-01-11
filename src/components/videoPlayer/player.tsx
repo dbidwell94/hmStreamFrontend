@@ -97,7 +97,7 @@ export default function VideoPlayer() {
     }
 
     axios
-      .get(`http://localhost:2019/video/${vidName}.webm`)
+      .get(`https://${baseUrl}/video/${vidName}.webm`)
       .then((res: AxiosResponse<iVideoDetails | null>) => {
         if (res.data) {
           const videoType = res.data?.videoName.split(".")[1];

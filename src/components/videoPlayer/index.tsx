@@ -40,7 +40,7 @@ export default function VideoPlayerLoader() {
           const port = remoteUrl.data.address.split(":")[1];
           try {
             const localResponse = await (
-              await axios.get<{ status?: string }>(`http://localhost:${port}`)
+              await axios.get<{ status?: string }>(`https://localhost:${port}`)
             ).data;
             if ("status" in localResponse) {
               dispatch(setMediaServerAddress(`localhost:${port}`));
@@ -51,7 +51,7 @@ export default function VideoPlayerLoader() {
             try {
               console.log("trying other server");
               const remoteResponse = await (
-                await axios.get(`http://${remoteUrl.data.address}`, {})
+                await axios.get(`https://${remoteUrl.data.address}`, {})
               ).data;
               if ("status" in remoteResponse) {
                 dispatch(setMediaServerAddress(remoteUrl.data.address));
